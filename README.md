@@ -1,8 +1,6 @@
 # Nagios plugin for Resque
 
-It puts given job in high queue and expects the job will update key with timestamp.
-
-And check:
+It checks resque by putting given job in high queue and expects the job will update key with timestamp.
 
 ```$ ruby check_resque.rb -N production -T 60 -J ResqueNagiosJob -K 'resque:job:nagios:processed:time'```
 

@@ -10,7 +10,7 @@ It checks resque by putting given job in high queue and expects the job will upd
 class ResqueNagiosJob
   REDIS_KEY = 'resque:job:nagios:processed:time'
 
-  self.def perform
+  def self.perform
     Resque.redis.set(REDIS_KEY, time.to_i)
   end
 end

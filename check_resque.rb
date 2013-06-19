@@ -7,7 +7,8 @@ require 'resque'
 
 class NagiosResquePlugin < NagiosPlugin::Plugin
   include NagiosPlugin::DefaultOptions
-  VERSION = 0.1
+
+  NagiosPlugin::DefaultOptions::VERSION = 0.1
 
   class << self
     def run(*args)

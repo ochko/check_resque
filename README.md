@@ -21,11 +21,10 @@ end
 ```
 Usage: check_resque [options]
     -H, --host hosname               redis server
-    -P, --port number                redis server port
-    -N, --namespace name             redis namespace
-    -J, --job name                   resque job name
-    -K, --key name                   redis key for timestamp
-    -T, --tolerance time             tolerance time in seconds
+    -p, --port number                redis server port
+    -n, --namespace name             redis namespace
+    -j, --job name                   resque job name
+    -k, --key name                   redis key for timestamp
 
 Default options:
 

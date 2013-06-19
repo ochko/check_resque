@@ -1,4 +1,3 @@
-#!__RUBY__
 
 require 'rubygems'
 require 'nagiosplugin'
@@ -22,26 +21,33 @@ class NagiosResquePlugin < NagiosPlugin::Plugin
       opts.on("-H", "--host hosname", String, "redis server") do |host|
         @options[:host] = host
       end
-      opts.on("-P", "--port number", Integer, "redis server port") do |port|
+      opts.on("-p", "--port number", Integer, "redis server port") do |port|
         @options[:port] = port
       end
-      opts.on("-N", "--namespace name", String, "redis namespace") do |namespace|
+      opts.on("-n", "--namespace name", String, "redis namespace") do |namespace|
         @options[:namespace] = namespace
       end
-      opts.on("-J", "--job name", String, "resque job name") do |job|
+      opts.on("-j", "--job name", String, "resque job name") do |job|
         @options[:job] = job
       end
-      opts.on("-K", "--key name", String, "redis key for timestamp") do |key|
+      opts.on("-k", "--key name", String, "redis key for timestamp") do |key|
         @options[:key] = key
-      end
-      opts.on("-T", "--tolerance time", Integer, "tolerance time in seconds") do |tolerance|
-        @options[:tolerance] = tolerance
       end
 
       yield(opts) if block_given?
 
       begin
         opts.parse!(args)
+
+        if @options[:warn].nil? && @options[:crit].nil?
+          @options[:crit] ||= (600..600)
+        end
+
+        if !@options[:warn].nil? && !@options[:crit].nil?
+          if @options[:warn].last > @options[:crit].first
+            unknown "Critical and Warning thresholds shouldn't overlap"
+          end
+        end
         @options
       rescue => e
         unknown "#{e}\n\n#{opts}"
@@ -68,41 +74,63 @@ class NagiosResquePlugin < NagiosPlugin::Plugin
       @namespace = options[:namespace] || "production"
       @job       = options[:job]       || 'ResqueMonitorJob'
       @key       = options[:key]       || 'resque:job:monitor:time'
-      @tolerance = options[:tolerance] || 600
+      @warning   = options[:warn]
+      @critical  = options[:crit]
 
       Resque.redis = "#{@host}:#{@port}/resque:#{@namespace}"
     end
 
-    def timestamp
+    def warning?
+      @warning && (passed_time.nil? || @warning.include?(passed_time))
+    end
+
+    def critical?
+      return true unless passed_time
+      @critical && (passed_time.nil? || @critical.first < passed_time)
+    end
+
+    def last_run_at
       if time = Resque.redis.get(@key)
-        Time.at(time.to_i)
-      else
-        Time.now - 3600*24 # 24 hours
+        Integer(time)
       end
     end
-    def overdue?
-      timestamp <= tolerance
+
+    def passed_time
+      # need to cache because there is small time difference between checks
+      return @passed_time if defined?(@passed_time)
+      @passed_time =
+        if time = last_run_at
+          Integer(Time.now - time)
+        else
+          nil
+        end
     end
+
     def requeue
       Resque::Job.destroy(:high, @job)
       Resque::Job.create(:high, @job)
     end
-    def tolerance
-      Time.now - @tolerance
+
+    def ok_message
+      "last run at #{Time.at(last_run_at).strftime('%Y-%m-%d %H:%M:%S %z')}"
     end
-    def success_message
-      "#{@job} was run last time at #{timestamp}"
+
+    def warning_message
+      "haven't run in #{@warning.last} seconds"
     end
-    def failure_message
-      "#{@job} is not being processed in #{@tolerance} seconds"
+
+    def critical_message
+      "haven't run in #{@critical.first} seconds"
     end
   end
 
   def check
-    if @resque_check.overdue?
-      critical @resque_check.failure_message
+    if @resque_check.critical?
+      critical @resque_check.critical_message
+    elsif @resque_check.warning?
+      warning @resque_check.warning_message
     else
-      ok @resque_check.success_message
+      ok @resque_check.ok_message
     end
   ensure
     @resque_check.requeue

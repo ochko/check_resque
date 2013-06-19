@@ -5,7 +5,8 @@ RUBY?=	/usr/local/bin/ruby
 all:	check_resque
 
 check_resque:
-	sed -e "s|__RUBY__|${RUBY}|" check_resque.rb > ${.TARGET} || (rm -f ${.TARGET} && exit 1)
+	echo "#!${RUBY}"|cat - check_resque.rb > ${.TARGET} || (rm -f ${.TARGET} && exit 1)
+	chmod +x ${.TARGET}
 
 install:
 	install check_resque ${NAGIOS_PLUGINS_DIR}/

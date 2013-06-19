@@ -2,16 +2,18 @@
 
 It checks resque by putting given job in high queue and expects the job will update key with timestamp.
 
-```$ ruby check_resque.rb -n production -j ResqueNagiosJob -k 'resque:job:nagios:processed:time'```
+```$ check_resque -n 'resque:production' -j 'NagiosResque::Job'
 
-## Example Job
+## Default Job
+
+Job need update NagiosResque::NAGIOS_RESQUE_TIMESTAMP_KEY key with timestamp.
 
 ```ruby
-class ResqueNagiosJob
-  REDIS_KEY = 'resque:job:nagios:processed:time'
-
-  def self.perform
-    Resque.redis.set(REDIS_KEY, time.to_i)
+module NagiosResque
+  class Job
+    def self.perform
+      Resque.redis.set(NAGIOS_RESQUE_TIMESTAMP_KEY, Time.now.to_i)
+    end
   end
 end
 ```

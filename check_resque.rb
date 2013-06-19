@@ -1,4 +1,4 @@
-#!/usr/local/bin/ruby
+#!__RUBY__
 
 require 'rubygems'
 require 'nagiosplugin'

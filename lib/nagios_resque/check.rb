@@ -8,7 +8,19 @@ module NagiosResque
       @warning   = options[:warn]
       @critical  = options[:crit]
 
-      Resque.redis = "#{@host}:#{@port}/#{@namespace}"
+      @redis = ResqueRedis.new(:host => @host, :port => @port, :namespace => @namespace)
+    end
+
+    # It is just (:class => @job, :args => []).to_json
+    # Don't want to depend on resque gem which itself has many dependecies
+    def payload
+      %Q({"class":"#{@job}","args":[]})
+    end
+
+    def requeue
+      @redis.sadd 'queues', 'high'
+      @redis.lrem 'queue:high', 0, payload
+      @redis.rpush 'queue:high', payload
     end
 
     def warning?
@@ -21,7 +33,7 @@ module NagiosResque
     end
 
     def last_run_at
-      if time = Resque.redis.get(NAGIOS_RESQUE_TIMESTAMP_KEY)
+      if time = @redis.get(NAGIOS_RESQUE_TIMESTAMP_KEY)
         Integer(time)
       end
     end
@@ -37,9 +49,28 @@ module NagiosResque
         end
     end
 
-    def requeue
-      Resque::Job.destroy(:high, @job)
-      Resque::Job.create(:high, @job)
+    class ResqueRedis
+      def initialize(options)
+        @namespace = options.delete(:namespace)
+        @redis = Redis.new options.merge(:thread_safe => true)
+      end
+
+      def namespaced(key)
+        "#{@namespace}:#{key}"
+      end
+
+      def get(key)
+        @redis.get namespaced(key)
+      end
+      def sadd(key, value)
+        @redis.sadd namespaced(key), value
+      end
+      def lrem(key, count, value)
+        @redis.lrem namespaced(key), count, value
+      end
+      def rpush(key, value)
+        @redis.rpush namespaced(key), value
+      end
     end
 
     def ok_message

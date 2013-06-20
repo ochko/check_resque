@@ -1,4 +1,4 @@
-require 'resque'
+require 'redis'
 require 'nagiosplugin'
 require 'nagiosplugin/default_options'
 require 'nagios_resque/version'

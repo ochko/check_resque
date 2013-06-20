@@ -24,7 +24,7 @@
 
 begin
   require 'rubygems'
-  gem 'nagios_resque'
+  gem 'check_resque_paranoid'
 rescue LoadError
 end
 

@@ -5,11 +5,11 @@ $:.unshift File.expand_path("../lib", __FILE__)
 require 'nagios_resque/version'
 
 Gem::Specification.new do |s|
-  s.name = "nagios_resque"
+  s.name = "check_resque_paranoid"
 
   s.version = NagiosResque::VERSION
 
-  s.homepage = "https://github.com/ochko/nagios_resque"
+  s.homepage = "https://github.com/ochko/check_resque_paranoid"
 
   s.summary = "Nagios plugin for Resque"
 

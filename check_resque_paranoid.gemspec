@@ -27,6 +27,6 @@ Gem::Specification.new do |s|
 
   s.executables = %w[check_resque]
 
-  s.add_dependency('redis')
-  s.add_dependency('nagiosplugin')
+  s.add_dependency('redis', '>= 3.0.0')
+  s.add_dependency('nagiosplugin', '>= 1.3.0')
 end

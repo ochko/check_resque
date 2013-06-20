@@ -2,7 +2,7 @@
 
 It checks resque by putting given job in high queue and expects the job will update key with timestamp.
 
-```$ check_resque -n 'resque:production' -j 'NagiosResque::Job'
+```$ check_resque -n 'resque:production' -j 'NagiosResque::Job'```
 
 ## Default Job
 

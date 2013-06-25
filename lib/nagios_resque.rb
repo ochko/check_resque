@@ -7,7 +7,7 @@ require 'nagios_resque/check'
 require 'nagios_resque/plugin'
 
 module NagiosResque
-  NAGIOS_RESQUE_TIMESTAMP_KEY = 'resque:job:monitor:nagios:time'
+  NAGIOS_RESQUE_TIMESTAMP_KEY = 'job:monitor:nagios:time'
 end
 
 NagiosPlugin::DefaultOptions::VERSION = NagiosResque::VERSION

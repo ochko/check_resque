@@ -3,8 +3,8 @@ module NagiosResque
     def initialize(options)
       @host      = options[:host]      || "localhost"
       @port      = options[:port]      || 6379
-      @namespace = options[:namespace] || "resque"
       @job       = options[:job]       || 'NagiosResque::Job'
+      @namespace = options[:namespace]
       @warning   = options[:warn]
       @critical  = options[:crit]
 
@@ -51,7 +51,7 @@ module NagiosResque
 
     class ResqueRedis
       def initialize(options)
-        @namespace = options.delete(:namespace)
+        @namespace = ['resque', options.delete(:namespace)].compact.join(':')
         @redis = Redis.new options.merge(:thread_safe => true)
       end
 
